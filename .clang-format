@@ -1,25 +1,7 @@
 ---
 BasedOnStyle: LLVM
 IndentWidth: 4
-BreakBeforeBraces: Custom
-BraceWrapping:
-    AfterControlStatement: Never
-    AfterObjCDeclaration: true
-    AfterNamespace: true
-    AfterClass: true
-    AfterEnum: true
-    AfterFunction: true
-    AfterStruct: true
-    AfterUnion: true
-    AfterExternBlock: true
-    BeforeCatch: false
-    BeforeElse: false
-    BeforeLambdaBody: false
-    BeforeWhile: false
-    IndentBraces: false
-    SplitEmptyFunction: true
-    SplitEmptyRecord: true
-    SplitEmptyNamespace: true
+BreakBeforeBraces: Attach
 AllowShortFunctionsOnASingleLine: None
 AlwaysBreakTemplateDeclarations: Yes
 ColumnLimit: 100
@@ -27,3 +9,5 @@ AlignAfterOpenBracket: Align
 PenaltyBreakBeforeFirstCallParameter: 10000
 BinPackArguments: false
 DerivePointerAlignment: true
+FixNamespaceComments: false
+AccessModifierOffset: -4

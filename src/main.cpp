@@ -1,47 +1,55 @@
-// A simple echo server at port 80
-
-#include "asio/io_context.hpp"
-#include "asio/ip/address.hpp"
+#include "client.h"
+#include "server.h"
 #include "util.h"
-#include <asio.hpp>
-#include <exception>
+#include <cstdlib>
 #include <iostream>
+#include <stdexcept>
+#include <string>
 #include <thread>
 
-#define MAX_LENGTH 1024
-
-void handle_client(asio::ip::tcp::socket socket)
-{
+void handle_connection(client_socket client) {
     try {
-        while (true) {
-            char data[MAX_LENGTH];
-            asio::error_code error;
-            auto length = socket.read_some(asio::buffer(data), error);
-
-            // End connection if EOF is sent; if there is any other error, raise an exception
-            if (error == asio::error::eof) {
-                util::println("Connection closed.");
-                break;
-            } else if (error) {
-                throw asio::system_error(error);
-            }
-
-            asio::write(socket, asio::buffer(data, length));
-        }
+        auto message = client.recv();
+        print("<client> {}", message);
+        client.send(message);
     } catch (std::exception& e) {
-        util::eprintln("Exception in thread: {}", e.what());
+        println("{}", e.what());
     }
 }
 
-int main()
-{
-    asio::io_context context;
-    asio::ip::tcp::acceptor server(context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 80));
+/**
+ * A basic HTTP web server that returns a requested file or returns an error if not found. Uses
+ * the thread-per-connection model to handle requests and is not asynchoronous.
+ *
+ * TODO:
+ * - Implement HTTP part of the server
+ * - Consider using `std::expected` type instead of exceptions
+ */
+int main(int argc, char* argv[]) {
+    if (argc > 2) {
+        println("Usage: web [port]");
+        std::exit(1);
+    }
+
+    // Check if CLI argument is valid
+    int port = 80;
+    if (argc == 2) {
+        try {
+            port = std::stoi(argv[1]);
+        } catch (std::invalid_argument& e) {
+            println("Usage: web [port]");
+            std::exit(1);
+        }
+    }
+
     try {
+        server_socket socket = server_socket::listen("localhost", port);
+
         while (true) {
-            std::thread(handle_client, server.accept()).detach();
+            std::thread handler(handle_connection, socket.accept());
+            handler.detach();
         }
     } catch (std::exception& e) {
-        util::eprintln("Exception: {}", e.what());
+        println("{}", e.what());
     }
 }
