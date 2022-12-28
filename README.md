@@ -1,4 +1,4 @@
-# web_sever
+# web_server
 
 A pretty basic HTTP server written in C++. Handles the most fundamental request of retrieving a
 desired file for a client.
