@@ -4,23 +4,18 @@
 #include <string>
 
 /**
- * Client sockets are also implemented with move semantics so that they cannot be copied when
- * called to a function.
+ * A C++ wrapper around a TCP client socket.
  */
 class client_socket {
 private:
     int fd;
-    client_socket(int fd) : fd(fd) {
-    }
+    client_socket(int fd); // Use named constructors
 
 public:
     /**
      * Move constructor
      */
-    client_socket(client_socket&& r) : fd(r.fd) {
-        // Invalidate previous socket's fd so that it does not close when destroyed
-        r.fd = -1;
-    }
+    client_socket(client_socket&& rhs);
 
     /**
      * Creates a socket to connect to the given address and port.
@@ -35,12 +30,12 @@ public:
     /**
      * Sends a message to the remote socket.
      */
-    void send(std::string message);
+    int send(std::string message);
 
     /**
      * Receives a message of specified size from the remote socket.
      */
-    std::string recv(int size = 8192);
+    std::pair<std::string, int> recv(int size = 8192);
 
     /**
      * Closes the socket's file descriptor when it is freed from memory.

@@ -6,11 +6,13 @@ project(web_server
     LANGUAGES CXX)
 
 # TODO: Determine if we really need to include headers
-set(SOURCES src/main.cpp src/util.h src/server.h src/server.cpp src/client.h src/client.cpp)
+set(SOURCES
+    src/main.cpp src/util.h src/server.h src/server.cpp src/client.h src/client.cpp
+    src/http_request.h src/http_request.cpp)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF) # TODO: This could ON, not sure why it's off
+set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # We need this for clangd to get a compile_commands.json
 
 # Fetch fmt library from GitHub

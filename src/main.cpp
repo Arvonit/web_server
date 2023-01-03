@@ -1,29 +1,14 @@
 #include "client.h"
+#include "http_request.h"
 #include "server.h"
 #include "util.h"
-#include <cstdlib>
-#include <iostream>
-#include <stdexcept>
-#include <string>
 #include <thread>
 
-void handle_connection(client_socket client) {
-    try {
-        auto message = client.recv();
-        print("<client> {}", message);
-        client.send(message);
-    } catch (std::exception& e) {
-        println("{}", e.what());
-    }
-}
+void handle_connection(client_socket client);
 
 /**
  * A basic HTTP web server that returns a requested file or returns an error if not found. Uses
- * the thread-per-connection model to handle requests and is not asynchoronous.
- *
- * TODO:
- * - Implement HTTP part of the server
- * - Consider using `std::expected` type instead of exceptions
+ * the thread-per-connection model to handle requests and is thus synchronous.
  */
 int main(int argc, char* argv[]) {
     if (argc > 2) {
@@ -37,19 +22,57 @@ int main(int argc, char* argv[]) {
         try {
             port = std::stoi(argv[1]);
         } catch (std::invalid_argument& e) {
-            println("Usage: web [port]");
+            eprintln("Usage: web [port]");
             std::exit(1);
         }
     }
 
     try {
-        server_socket socket = server_socket::listen("localhost", port);
-
+        auto socket = server_socket::listen("localhost", port);
+        println("Listening on port {}...\n", port);
         while (true) {
-            std::thread handler(handle_connection, socket.accept());
-            handler.detach();
+            std::thread(handle_connection, socket.accept()).detach();
         }
     } catch (std::exception& e) {
-        println("{}", e.what());
+        eprintln("{}", e.what());
+    }
+}
+
+void handle_connection(client_socket client) {
+    try {
+        // Get HTTP request from browser
+        auto message = client.recv().first;
+
+        // Parse request
+        auto request = http_request(message);
+
+        // Log request
+        println("request length: {}", message.length());
+        println("request line: {}, {}, {}", request.method, request.target, request.version);
+        print("{}", message);
+
+        // This server only supports the GET method
+        if (request.method != "GET") {
+            client.send(create_http_response("501 Not Implemented"));
+            return;
+        }
+
+        // Get file name from request
+        // We assume `/` fetches `index.html`
+        auto file = request.target == "/" ? "/index.html" : request.target;
+
+        // Try to read file, else return an error
+        try {
+            auto content = read_file(fmt::format("www{}", file));
+            client.send(create_http_response("200 OK", content));
+        } catch (std::invalid_argument& e) {
+            // The file does not exist, so we return 404
+            client.send(create_http_response("404 Not Found"));
+        } catch (std::ios_base::failure& e) {
+            // There was an error reading the file, so we return 500
+            client.send(create_http_response("500 Internal Server Error"));
+        }
+    } catch (std::exception& e) {
+        eprintln("{}", e.what());
     }
 }

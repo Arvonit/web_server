@@ -1,17 +1,19 @@
 #include "server.h"
-#include "client.h"
 #include "util.h"
-#include <cerrno>
-#include <fcntl.h>
-#include <iostream>
 #include <netdb.h>
-#include <stdexcept>
-#include <string.h>
-#include <sys/socket.h>
 #include <unistd.h>
 
+server_socket::server_socket(int fd) : fd(fd) {
+}
+
+server_socket::server_socket(server_socket&& rhs) : fd(rhs.fd) {
+    // Invalidate old socket's file descriptor so that it does not get closed when it is
+    // destroyed
+    rhs.fd = -1;
+}
+
 server_socket server_socket::listen(std::string address, int port) {
-    const int backlog = 10;
+    constexpr int backlog = 10;
     int fd, yes;
     struct addrinfo hints, *server_info, *p;
 
@@ -30,7 +32,7 @@ server_socket server_socket::listen(std::string address, int port) {
     // Search for the correct server info in the linked list and bind to it
     for (p = server_info; p != NULL; p = p->ai_next) {
         if ((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0) {
-            eprintln("[warning] socket error: {}\n", strerror(errno));
+            eprintln("[warning] server socket error: {}\n", strerror(errno));
             continue;
         }
 
@@ -43,7 +45,7 @@ server_socket server_socket::listen(std::string address, int port) {
 
         if (bind(fd, p->ai_addr, p->ai_addrlen) < 0) {
             close(fd);
-            eprintln("[warning] bind error: {}", strerror(errno));
+            eprintln("bind error: {}, retrying...", strerror(errno));
             continue;
         }
 
@@ -76,7 +78,7 @@ server_socket server_socket::from_fd(int fd) {
 client_socket server_socket::accept() {
     struct sockaddr_storage client_address;
     socklen_t client_address_size = sizeof(client_address);
-    int client_fd = ::accept(fd, (struct sockaddr *)&client_address, &client_address_size);
+    int client_fd = ::accept(fd, (struct sockaddr*)&client_address, &client_address_size);
     if (client_fd < 0) {
         throw std::runtime_error(fmt::format("accept error: {}", strerror(errno)));
     }

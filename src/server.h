@@ -7,25 +7,18 @@
 // TODO: Implement move semantics
 
 /**
- * An object-oriented, C++ wrapper around a TCP socket. Handles the lifetime of a socket and
- * contains methods to listen and accept incoming connections. Interface is based on Python's
- * `socket`.
+ * An C++ wrapper around a TCP server socket.
  */
 class server_socket {
 private:
     int fd;
-    server_socket(int fd) : fd(fd) {
-    }
+    server_socket(int fd); // Use named constructors
 
 public:
     /**
      * Move constructor
      */
-    server_socket(server_socket&& r) : fd(r.fd) {
-        // Invalid old socket's file descriptor so that it does not get closed when it is
-        // destroyed
-        r.fd = -1;
-    }
+    server_socket(server_socket&& rhs);
 
     /**
      * Creates a socket to listen on the given address and port. Throws an exception if there was
