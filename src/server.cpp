@@ -12,6 +12,19 @@ server_socket::server_socket(server_socket&& rhs) : fd(rhs.fd) {
     rhs.fd = -1;
 }
 
+server_socket& server_socket::operator=(server_socket&& rhs) {
+    // Check against self-assignment
+    if (&rhs == this) {
+        return *this;
+    }
+
+    // Set file descriptor from rvalue and invalidate old one
+    fd = rhs.fd;
+    rhs.fd = -1;
+
+    return *this;
+}
+
 server_socket server_socket::listen(std::string address, int port) {
     constexpr int backlog = 10;
     int fd, yes;

@@ -4,8 +4,6 @@
 #include "client.h"
 #include <string>
 
-// TODO: Implement move semantics
-
 /**
  * An C++ wrapper around a TCP server socket.
  */
@@ -15,10 +13,11 @@ private:
     server_socket(int fd); // Use named constructors
 
 public:
-    /**
-     * Move constructor
-     */
-    server_socket(server_socket&& rhs);
+    server_socket(server_socket&& rhs);            // Move constructor
+    server_socket& operator=(server_socket&& rhs); // Move assignment
+
+    server_socket(server_socket& rhs) = delete;            // Disable copy functionality
+    server_socket& operator=(server_socket& rhs) = delete; //
 
     /**
      * Creates a socket to listen on the given address and port. Throws an exception if there was

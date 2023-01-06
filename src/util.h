@@ -37,6 +37,17 @@ inline bool is_valid_fd(int fd) {
     return fcntl(fd, F_GETFL) != -1 || errno != EBADF;
 }
 
+inline void replace(std::string& str, std::string old_str, std::string new_str) {
+    size_t pos = 0;
+    while (pos += new_str.length()) {
+        pos = str.find(old_str, pos);
+        if (pos == std::string::npos) {
+            break;
+        }
+        str.replace(pos, old_str.length(), new_str);
+    }
+}
+
 inline std::vector<std::string> split_str(std::string s, std::string delimiter) {
     std::vector<std::string> out;
     size_t last = 0;
@@ -72,7 +83,9 @@ inline std::string read_file(std::string path) {
     return out;
 }
 
-// Create an HTML response page similar to nginx
+/**
+ * Creates an HTML response page similar to nginx.
+ */
 inline std::string create_html_error_page(std::string error) {
     return fmt::format(R"(<!DOCTYPE html>
 <html lang="en">

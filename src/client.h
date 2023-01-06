@@ -12,10 +12,11 @@ private:
     client_socket(int fd); // Use named constructors
 
 public:
-    /**
-     * Move constructor
-     */
-    client_socket(client_socket&& rhs);
+    client_socket(client_socket&& rhs);            // Move constructor
+    client_socket& operator=(client_socket&& rhs); // Move assignment
+
+    client_socket(client_socket& rhs) = delete;            // Disable copy functionality
+    client_socket& operator=(client_socket& rhs) = delete; //
 
     /**
      * Creates a socket to connect to the given address and port.
@@ -28,12 +29,13 @@ public:
     static client_socket from_fd(int fd);
 
     /**
-     * Sends a message to the remote socket.
+     * Sends a message to the remote socket. Returns the number of bytes sent.
      */
     int send(std::string message);
 
     /**
-     * Receives a message of specified size from the remote socket.
+     * Receives a message of specified size from the remote socket. Returns both the message and the
+     * number of bytes received.
      */
     std::pair<std::string, int> recv(int size = 8192);
 

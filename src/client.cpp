@@ -11,6 +11,19 @@ client_socket::client_socket(client_socket&& rhs) : fd(rhs.fd) {
     rhs.fd = -1;
 }
 
+client_socket& client_socket::operator=(client_socket&& rhs) {
+    // Check against self-assignment
+    if (&rhs == this) {
+        return *this;
+    }
+
+    // Set file descriptor from rvalue and invalidate old one
+    fd = rhs.fd;
+    rhs.fd = -1;
+
+    return *this;
+}
+
 client_socket client_socket::connect(std::string address, int port) {
     int fd;
     struct addrinfo hints, *server_info, *p;
